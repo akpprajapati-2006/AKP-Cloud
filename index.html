@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AKP CloudVault — Aapka Personal Cloud</title>
+<link rel="icon" href="akp2.png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --card: #1a2235;
+    --border: #1e2d45;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --accent3: #8b5cf6;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: 0 0 30px rgba(59,130,246,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── MESH BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(59,130,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; position: relative; z-index: 1; }
+  .page.active { display: block; }
+
+  /* ── AUTH PAGE ── */
+  #authPage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .auth-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .logo-area {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.6s ease;
+  }
+
+  .logo-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 32px rgba(59,130,246,0.35);
+  }
+
+  .logo-area h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo-area p { color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem; }
+
+  .auth-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--glow), 0 25px 60px rgba(0,0,0,0.4);
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .tab-switcher {
+    display: flex;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1.8rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(59,130,246,0.4);
+  }
+
+  .form-group { margin-bottom: 1.2rem; }
+
+  .form-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+    margin-top: 0.5rem;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(59,130,246,0.5);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .msg {
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    display: none;
+  }
+  .msg.success { background: rgba(16,185,129,0.15); border: 1px solid var(--success); color: var(--success); display: block; }
+  .msg.error { background: rgba(239,68,68,0.12); border: 1px solid var(--danger); color: var(--danger); display: block; }
+
+  /* ── DASHBOARD ── */
+  #dashPage { min-height: 100vh; }
+
+  .topbar {
+    background: rgba(17,24,39,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #fff, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .topbar-logo span { font-size: 1.4rem; }
+
+  .topbar-right { display: flex; align-items: center; gap: 1rem; }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 0.4rem 1rem 0.4rem 0.4rem;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .user-badge span { font-size: 0.9rem; font-weight: 700; }
+
+  .btn-logout {
+    padding: 0.45rem 1rem;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .dash-body { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-3px); }
+
+  .stat-icon {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.blue { background: rgba(59,130,246,0.18); }
+  .stat-icon.cyan { background: rgba(6,182,212,0.18); }
+  .stat-icon.purple { background: rgba(139,92,246,0.18); }
+
+  .stat-info h3 { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; }
+  .stat-info p { color: var(--muted); font-size: 0.82rem; margin-top: 0.15rem; }
+
+  /* ACTIONS */
+  .actions-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-upload {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+  }
+
+  .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.45); }
+
+  .btn-newfile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    background: transparent;
+    border: 1.5px solid var(--accent3);
+    border-radius: 12px;
+    color: var(--accent3);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .btn-newfile:hover { background: rgba(139,92,246,0.12); transform: translateY(-2px); }
+
+  .search-box {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+  }
+
+  .search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    width: 180px;
+  }
+
+  /* FILE GRID */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .file-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.3rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .file-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .file-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+  .file-card:hover::before { opacity: 1; }
+
+  .file-icon { font-size: 2.2rem; margin-bottom: 0.8rem; }
+  .file-name { font-weight: 700; font-size: 0.88rem; word-break: break-all; margin-bottom: 0.4rem; }
+  .file-meta { font-size: 0.75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  .file-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  .fa-btn {
+    flex: 1;
+    padding: 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+  }
+
+  .fa-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .fa-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+  .empty-state .emo { font-size: 3rem; margin-bottom: 1rem; }
+  .empty-state p { font-size: 0.95rem; }
+
+  /* HIDDEN FILE INPUT */
+  #fileInput { display: none; }
+
+  /* ── EDITOR MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 780px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-header h3 { font-family: 'Syne', sans-serif; font-size: 1rem; }
+  .modal-header input.filename-edit {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    outline: none;
+    width: 260px;
+  }
+  .modal-header input.filename-edit:focus { border-color: var(--accent); }
+
+  .modal-toolbar {
+    padding: 0.8rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .tb-btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tb-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tb-btn.save { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tb-btn.save:hover { background: #2563eb; }
+
+  .modal-editor {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+  }
+
+  #editorTextarea {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    background: var(--surface);
+    border: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    padding: 1.5rem;
+    resize: none;
+    outline: none;
+    overflow-y: auto;
+  }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .btn-close-modal {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+
+  .btn-close-modal:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.9rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    z-index: 999;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.35s;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--success); color: var(--success); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* UPLOAD ZONE */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+
+  .drop-zone:hover, .drop-zone.drag { border-color: var(--accent); background: rgba(59,130,246,0.05); }
+  .drop-zone .dz-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+  .drop-zone p { color: var(--muted); font-size: 0.9rem; }
+  .drop-zone strong { color: var(--accent); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .actions-bar { flex-direction: column; align-items: stretch; }
+    .search-box { margin-left: 0; width: 100%; }
+    .search-box input { width: 100%; }
+    .topbar { padding: 0 1rem; }
+    .dash-body { padding: 1.5rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ AUTH PAGE ═══════════════ -->
+<div id="authPage" class="page active">
+  <div class="auth-container">
+    <div class="logo-area">
+      <div class="logo-icon">☁️</div>
+      <h1>CloudVault</h1>
+      <p>Aapka personal secure cloud storage with AKP</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="tab-switcher">
+        <button class="tab-btn active" onclick="switchTab('login')">🔑 Login</button>
+        <button class="tab-btn" onclick="switchTab('register')">✨ Register</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUser" placeholder="Enter Username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPass" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary" onclick="doLogin()">please Login →</button>
+        <div id="loginMsg" class="msg"></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm" style="display:none">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUser" placeholder="Create A New Username" />
+        </div>
+        <div class="form-group">
+          <label>Email (optional)</label>
+          <input type="email" id="regEmail" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPass" placeholder="Write strong password" />
+        </div>
+        <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+        <div id="registerMsg" class="msg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD PAGE ═══════════════ -->
+<div id="dashPage" class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo"><span>☁️</span> CloudVault</div>
+    <div class="topbar-right">
+      <div class="user-badge">
+        <div class="avatar" id="avatarLetter">U</div>
+        <span id="topbarUsername">User</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">⬅ Logout</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon blue">📁</div>
+        <div class="stat-info">
+          <h3 id="statFiles">0</h3>
+          <p>Total Files</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon cyan">💾</div>
+        <div class="stat-info">
+          <h3 id="statStorage">0 KB</h3>
+          <p>Storage Used</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">✏️</div>
+        <div class="stat-info">
+          <h3 id="statUser">—</h3>
+          <p>Aapka Account</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DROP ZONE -->
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="dz-icon">⬆️</div>
+      <p><strong>Click karo ya drag & drop karo</strong> file yahan</p>
+      <p style="margin-top:0.4rem;font-size:0.8rem">Koi bhi file — documents, images, zip sab chalega</p>
+    </div>
+    <input type="file" id="fileInput" multiple onchange="uploadFiles(this.files)" />
+
+    <!-- ACTIONS -->
+    <div class="actions-bar">
+      <button class="btn-upload" onclick="document.getElementById('fileInput').click()">⬆️ File Upload</button>
+      <button class="btn-newfile" onclick="openNewFile()">📝 Naya Document</button>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="file dhundo..." oninput="filterFiles()" />
+      </div>
+    </div>
+
+    <!-- FILES -->
+    <div class="section-title">Meri Files</div>
+    <div class="file-grid" id="fileGrid">
+      <div class="empty-state">
+        <div class="emo">📭</div>
+        <p>Abhi koi file nahi hai<br>Upload karo ya naya document banao!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ EDITOR MODAL ═══════════════ -->
+<div class="modal-overlay" id="editorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📝 Document Editor</h3>
+      <input class="filename-edit" type="text" id="editorFilename" placeholder="filename.txt" />
+    </div>
+    <div class="modal-toolbar">
+      <button class="tb-btn save" onclick="saveFile()">💾 Save</button>
+      <button class="tb-btn" onclick="downloadEditorFile()">⬇️ Download</button>
+      <button class="tb-btn" onclick="selectAllText()">⬜ Select All</button>
+      <button class="tb-btn" onclick="clearEditor()">🗑️ Clear</button>
+      <button class="btn-close-modal" style="margin-left:auto" onclick="closeEditor()">✕ Band Karo</button>
+    </div>
+    <div class="modal-editor">
+      <textarea id="editorTextarea" placeholder="Yahan likhna shuru karo...&#10;&#10;Python ke saath is file ko read/write kar sakte ho!"></textarea>
+    </div>
+    <div class="modal-footer">
+      <span id="editorCharCount">0 characters</span>
+      <span id="editorStatus">Ready</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = "http://localhost:5000/api";
+  let currentUser = null;
+  let allFiles = [];
+
+  // ─── TAB SWITCH ───────────────────────────────────────────────────────────
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+  }
+
+  // ─── AUTH ─────────────────────────────────────────────────────────────────
+
+  async function doLogin() {
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if (!username || !password) return showMsg('loginMsg', 'Sab fields bharo', 'error');
+
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg('loginMsg', data.error, 'error');
+      currentUser = username;
+      enterDashboard();
+    } catch {
+      showMsg('loginMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
+    }
+  }
+
+  async function doRegister() {
+    const username = document.getElementById('regUser').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+    if (!username || !password) return showMsg('registerMsg', 'Username aur password zaroori hai', 'error');
+
+    try {
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg('registerMsg', data.error, 'error');
+      showMsg('registerMsg', '✅ Account ban gaya! Ab login karo.', 'success');
+      setTimeout(() => switchTab('login'), 1500);
+    } catch {
+      showMsg('registerMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
+    }
+  }
+
+  function doLogout() {
+    currentUser = null;
+    allFiles = [];
+    showPage('authPage');
+  }
+
+  // ─── DASHBOARD ────────────────────────────────────────────────────────────
+
+  function enterDashboard() {
+    showPage('dashPage');
+    document.getElementById('topbarUsername').textContent = currentUser;
+    document.getElementById('avatarLetter').textContent = currentUser[0].toUpperCase();
+    document.getElementById('statUser').textContent = currentUser;
+    loadFiles();
+    loadStorageInfo();
+  }
+
+  async function loadFiles() {
+    try {
+      const res = await fetch(`${API}/files/${currentUser}`);
+      const data = await res.json();
+      allFiles = data.files || [];
+      renderFiles(allFiles);
+      document.getElementById('statFiles').textContent = allFiles.length;
+    } catch {
+      toast('Files load nahi hui — backend check karo', 'error');
+    }
+  }
+
+  async function loadStorageInfo() {
+    try {
+      const res = await fetch(`${API}/storage/${currentUser}`);
+      const data = await res.json();
+      document.getElementById('statStorage').textContent = formatSize(data.used_bytes);
+    } catch {}
+  }
+
+  function renderFiles(files) {
+    const grid = document.getElementById('fileGrid');
+    if (!files.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="emo">📭</div><p>Koi file nahi — upload karo!</p></div>`;
+      return;
+    }
+    grid.innerHTML = files.map(f => `
+      <div class="file-card">
+        <div class="file-icon">${getIcon(f.name)}</div>
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${formatSize(f.size)}</div>
+        <div class="file-meta">${formatDate(f.modified)}</div>
+        <div class="file-actions">
+          ${isTextFile(f.name) ? `<button class="fa-btn" onclick="openFileEditor('${f.name}')">✏️</button>` : ''}
+          <button class="fa-btn" onclick="downloadFile('${f.name}')">⬇️</button>
+          <button class="fa-btn danger" onclick="deleteFile('${f.name}')">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterFiles() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    renderFiles(allFiles.filter(f => f.name.toLowerCase().includes(q)));
+  }
+
+  // ─── UPLOAD ───────────────────────────────────────────────────────────────
+
+  async function uploadFiles(files) {
+    for (const file of files) {
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const res = await fetch(`${API}/upload/${currentUser}`, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) toast(data.error, 'error');
+        else toast(`✅ ${file.name} upload ho gaya!`, 'success');
+      } catch {
+        toast(`❌ ${file.name} upload fail`, 'error');
+      }
+    }
+    loadFiles();
+    loadStorageInfo();
+  }
+
+  // DRAG & DROP
+  const dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag');
+    uploadFiles(e.dataTransfer.files);
+  });
+
+  // ─── DOWNLOAD / DELETE ───────────────────────────────────────────────────
+
+  function downloadFile(filename) {
+    window.open(`${API}/download/${currentUser}/${encodeURIComponent(filename)}`);
+    toast(`⬇️ Download shuru: ${filename}`, 'success');
+  }
+
+  async function deleteFile(filename) {
+    if (!confirm(`"${filename}" delete karna chahte ho?`)) return;
+    try {
+      await fetch(`${API}/delete/${currentUser}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+      toast(`🗑️ ${filename} delete ho gaya`, 'success');
+      loadFiles();
+      loadStorageInfo();
+    } catch {
+      toast('Delete fail ho gaya', 'error');
+    }
+  }
+
+  // ─── EDITOR ───────────────────────────────────────────────────────────────
+
+  function openNewFile() {
+    document.getElementById('editorFilename').value = 'naya-document.txt';
+    document.getElementById('editorTextarea').value = '';
+    updateEditorMeta();
+    document.getElementById('editorModal').classList.add('open');
+  }
+
+  async function openFileEditor(filename) {
+    try {
+      const res = await fetch(`${API}/read/${currentUser}/${encodeURIComponent(filename)}`);
+      const data = await res.json();
+      if (!res.ok) return toast(data.error, 'error');
+      document.getElementById('editorFilename').value = filename;
+      document.getElementById('editorTextarea').value = data.content;
+      updateEditorMeta();
+      document.getElementById('editorModal').classList.add('open');
+    } catch {
+      toast('File read nahi ho pa rahi', 'error');
+    }
+  }
+
+  async function saveFile() {
+    const filename = document.getElementById('editorFilename').value.trim();
+    const content = document.getElementById('editorTextarea').value;
+    if (!filename) return toast('File ka naam daalo', 'error');
+    try {
+      const res = await fetch(`${API}/write/${currentUser}/${encodeURIComponent(filename)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      const data = await res.json();
+      document.getElementById('editorStatus').textContent = '✅ Saved ' + new Date().toLocaleTimeString();
+      toast(`💾 ${filename} save ho gaya!`, 'success');
+      loadFiles();
+      loadStorageInfo();
+    } catch {
+      toast('Save fail ho gaya', 'error');
+    }
+  }
+
+  function downloadEditorFile() {
+    const filename = document.getElementById('editorFilename').value.trim() || 'document.txt';
+    const content = document.getElementById('editorTextarea').value;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    toast(`⬇️ ${filename} download ho raha hai`, 'success');
+  }
+
+  function selectAllText() {
+    document.getElementById('editorTextarea').select();
+  }
+
+  function clearEditor() {
+    if (confirm('Editor clear karna chahte ho?')) {
+      document.getElementById('editorTextarea').value = '';
+      updateEditorMeta();
+    }
+  }
+
+  function closeEditor() {
+    document.getElementById('editorModal').classList.remove('open');
+  }
+
+  document.getElementById('editorTextarea').addEventListener('input', updateEditorMeta);
+
+  function updateEditorMeta() {
+    const len = document.getElementById('editorTextarea').value.length;
+    document.getElementById('editorCharCount').textContent = `${len} characters`;
+  }
+
+  // ─── HELPERS ──────────────────────────────────────────────────────────────
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = `msg ${type}`;
+  }
+
+  let toastTimer;
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('hi-IN');
+  }
+
+  function isTextFile(name) {
+    return /\.(txt|md|json|csv|html|css|js|py|xml|yaml|yml|log|ini|cfg|sh|bat|sql)$/i.test(name);
+  }
+
+  function getIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const icons = {
+      pdf: '📄', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', webp: '🖼️',
+      mp4: '🎬', mp3: '🎵', wav: '🎵', zip: '🗜️', rar: '🗜️', tar: '🗜️',
+      py: '🐍', js: '📜', html: '🌐', css: '🎨', json: '📋', csv: '📊',
+      doc: '📝', docx: '📝', xls: '📊', xlsx: '📊', ppt: '📊', pptx: '📊',
+      txt: '📃', md: '📝', sql: '🗄️', xml: '📋'
+    };
+    return icons[ext] || '📁';
+  }
+</script>
+
+</body>
+</html>
