@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import hashlib
 from datetime import datetime
-from supabase import create_client, Client
+import requests as req
 
 app = Flask(__name__)
 CORS(app)
@@ -11,13 +11,38 @@ CORS(app)
 SUPABASE_URL = "https://mhxvfmpgquozppvnzjgz.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oeHZmbXBncXVvenBwdm56amd6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDQzMDQ2OCwiZXhwIjoyMDkwMDA2NDY4fQ._RWBLNyGJn5D68NoP0_T8xFbYPgfvBBMX0BSvyPZUS0"
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
 
 UPLOAD_DIR = "user_storage"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
+def sb_get(table, filters=""):
+    url = f"{SUPABASE_URL}/rest/v1/{table}?{filters}"
+    r = req.get(url, headers=HEADERS)
+    return r.json()
+
+def sb_post(table, data):
+    url = f"{SUPABASE_URL}/rest/v1/{table}"
+    r = req.post(url, headers=HEADERS, json=data)
+    return r.json()
+
+def sb_patch(table, filters, data):
+    url = f"{SUPABASE_URL}/rest/v1/{table}?{filters}"
+    r = req.patch(url, headers=HEADERS, json=data)
+    return r.json()
+
+def sb_delete(table, filters):
+    url = f"{SUPABASE_URL}/rest/v1/{table}?{filters}"
+    r = req.delete(url, headers=HEADERS)
+    return r.status_code
 
 # ── REGISTER ──────────────────────────────────────────────
 @app.route("/api/register", methods=["POST"])
@@ -30,16 +55,16 @@ def register():
     if not username or not password:
         return jsonify({"error": "Username aur password zaroori hai"}), 400
 
-    existing = supabase.table("users").select("username").eq("username", username).execute()
-    if existing.data:
+    existing = sb_get("users", f"username=eq.{username}&select=username")
+    if isinstance(existing, list) and len(existing) > 0:
         return jsonify({"error": "Username already exists"}), 409
 
-    supabase.table("users").insert({
+    sb_post("users", {
         "username": username,
         "password": hash_password(password),
         "email": email,
         "created": datetime.now().isoformat()
-    }).execute()
+    })
 
     return jsonify({"message": "Registration successful", "username": username})
 
@@ -50,11 +75,11 @@ def login():
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
 
-    result = supabase.table("users").select("*").eq("username", username).execute()
-    if not result.data:
+    result = sb_get("users", f"username=eq.{username}&select=*")
+    if not isinstance(result, list) or len(result) == 0:
         return jsonify({"error": "User not found"}), 404
 
-    user = result.data[0]
+    user = result[0]
     if user["password"] != hash_password(password):
         return jsonify({"error": "Incorrect password"}), 401
 
@@ -63,15 +88,16 @@ def login():
 # ── FILES LIST ────────────────────────────────────────────
 @app.route("/api/files/<username>", methods=["GET"])
 def list_files(username):
-    result = supabase.table("files").select("*").eq("username", username).execute()
+    result = sb_get("files", f"username=eq.{username}&select=*")
     files = []
-    for f in result.data:
-        files.append({
-            "name": f["filename"],
-            "size": f.get("size", 0),
-            "modified": f.get("uploaded_at", ""),
-            "type": f.get("filetype", "application/octet-stream")
-        })
+    if isinstance(result, list):
+        for f in result:
+            files.append({
+                "name": f["filename"],
+                "size": f.get("size", 0),
+                "modified": f.get("uploaded_at", ""),
+                "type": f.get("filetype", "application/octet-stream")
+            })
     return jsonify({"files": files})
 
 # ── UPLOAD ────────────────────────────────────────────────
@@ -90,21 +116,21 @@ def upload_file(username):
     file.save(save_path)
     size = os.path.getsize(save_path)
 
-    existing = supabase.table("files").select("id").eq("username", username).eq("filename", file.filename).execute()
-    if existing.data:
-        supabase.table("files").update({
+    existing = sb_get("files", f"username=eq.{username}&filename=eq.{file.filename}&select=id")
+    if isinstance(existing, list) and len(existing) > 0:
+        sb_patch("files", f"username=eq.{username}&filename=eq.{file.filename}", {
             "size": size,
             "uploaded_at": datetime.now().isoformat(),
             "filetype": file.content_type
-        }).eq("username", username).eq("filename", file.filename).execute()
+        })
     else:
-        supabase.table("files").insert({
+        sb_post("files", {
             "username": username,
             "filename": file.filename,
             "size": size,
             "uploaded_at": datetime.now().isoformat(),
-            "filetype": file.content_type
-        }).execute()
+            "filetype": file.content_type or "application/octet-stream"
+        })
 
     return jsonify({"message": f"{file.filename} uploaded successfully"})
 
@@ -142,20 +168,20 @@ def write_file(username, filename):
         f.write(content)
 
     size = os.path.getsize(file_path)
-    existing = supabase.table("files").select("id").eq("username", username).eq("filename", filename).execute()
-    if existing.data:
-        supabase.table("files").update({
+    existing = sb_get("files", f"username=eq.{username}&filename=eq.{filename}&select=id")
+    if isinstance(existing, list) and len(existing) > 0:
+        sb_patch("files", f"username=eq.{username}&filename=eq.{filename}", {
             "size": size,
             "uploaded_at": datetime.now().isoformat()
-        }).eq("username", username).eq("filename", filename).execute()
+        })
     else:
-        supabase.table("files").insert({
+        sb_post("files", {
             "username": username,
             "filename": filename,
             "size": size,
             "uploaded_at": datetime.now().isoformat(),
             "filetype": "text/plain"
-        }).execute()
+        })
 
     return jsonify({"message": f"{filename} saved successfully"})
 
@@ -165,18 +191,20 @@ def delete_file(username, filename):
     file_path = os.path.join(UPLOAD_DIR, username, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
-
-    supabase.table("files").delete().eq("username", username).eq("filename", filename).execute()
+    sb_delete("files", f"username=eq.{username}&filename=eq.{filename}")
     return jsonify({"message": f"{filename} deleted"})
 
 # ── STORAGE INFO ──────────────────────────────────────────
 @app.route("/api/storage/<username>", methods=["GET"])
 def storage_info(username):
-    result = supabase.table("files").select("size").eq("username", username).execute()
-    total = sum(f.get("size", 0) for f in result.data)
-    count = len(result.data)
+    result = sb_get("files", f"username=eq.{username}&select=size")
+    total = 0
+    count = 0
+    if isinstance(result, list):
+        total = sum(f.get("size", 0) for f in result)
+        count = len(result)
     return jsonify({"used_bytes": total, "file_count": count})
 
 if __name__ == "__main__":
-    print("🚀 CloudVault + Supabase running!")
+    print("CloudVault + Supabase running!")
     app.run(debug=True, port=5000)
