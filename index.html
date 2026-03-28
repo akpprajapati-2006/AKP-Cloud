@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AKP CloudVault — Aapka Personal Cloud</title>
-<link rel="icon" href="Screenshot 2026-03-26 225109.png">
+<link rel="icon" href="akp24.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -626,7 +626,7 @@
     <div class="logo-area">
       <div class="logo-icon">☁️</div>
       <h1>CloudVault</h1>
-      <p>Aapka personal secure cloud storage with AKP</p>
+      <p>Aap ka personal secure cloud storage with AKP</p>
     </div>
 
     <div class="auth-card">
@@ -707,7 +707,7 @@
         <div class="stat-icon purple">✏️</div>
         <div class="stat-info">
           <h3 id="statUser">—</h3>
-          <p>Aapka Account</p>
+          <p>Aap ka Account</p>
         </div>
       </div>
     </div>
@@ -715,27 +715,27 @@
     <!-- DROP ZONE -->
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
       <div class="dz-icon">⬆️</div>
-      <p><strong>Click karo ya drag & drop karo</strong> file yahan</p>
-      <p style="margin-top:0.4rem;font-size:0.8rem">Koi bhi file — documents, images, zip sab chalega</p>
+      <p><strong>Click or drag & drop your </strong> file here</p>
+      <p style="margin-top:0.4rem;font-size:0.8rem">Any file — Documents, Images, ZIP, All Are Supported</p>
     </div>
     <input type="file" id="fileInput" multiple onchange="uploadFiles(this.files)" />
 
     <!-- ACTIONS -->
     <div class="actions-bar">
       <button class="btn-upload" onclick="document.getElementById('fileInput').click()">⬆️ File Upload</button>
-      <button class="btn-newfile" onclick="openNewFile()">📝 Naya Document</button>
+      <button class="btn-newfile" onclick="openNewFile()">📝 New Document</button>
       <div class="search-box">
         <span>🔍</span>
-        <input type="text" id="searchInput" placeholder="file dhundo..." oninput="filterFiles()" />
+        <input type="text" id="searchInput" placeholder="file Search..." oninput="filterFiles()" />
       </div>
     </div>
 
     <!-- FILES -->
-    <div class="section-title">Meri Files</div>
+    <div class="section-title">MY Files With AKP</div>
     <div class="file-grid" id="fileGrid">
       <div class="empty-state">
         <div class="emo">📭</div>
-        <p>Abhi koi file nahi hai<br>Upload karo ya naya document banao!</p>
+        <p>No file uploaded yet<br>Upload a file or create a new document!</p>
       </div>
     </div>
   </div>
@@ -753,7 +753,7 @@
       <button class="tb-btn" onclick="downloadEditorFile()">⬇️ Download</button>
       <button class="tb-btn" onclick="selectAllText()">⬜ Select All</button>
       <button class="tb-btn" onclick="clearEditor()">🗑️ Clear</button>
-      <button class="btn-close-modal" style="margin-left:auto" onclick="closeEditor()">✕ Band Karo</button>
+      <button class="btn-close-modal" style="margin-left:auto" onclick="closeEditor()">✕ Close</button>
     </div>
     <div class="modal-editor">
       <textarea id="editorTextarea" placeholder="Yahan likhna shuru karo...&#10;&#10;Python ke saath is file ko read/write kar sakte ho!"></textarea>
@@ -769,7 +769,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const API = "https://akp-cloud.onrender.com/api";
+  const API = "http://localhost:5000/api";
   let currentUser = null;
   let allFiles = [];
 
@@ -787,7 +787,7 @@
   async function doLogin() {
     const username = document.getElementById('loginUser').value.trim();
     const password = document.getElementById('loginPass').value;
-    if (!username || !password) return showMsg('loginMsg', 'Sab fields bharo', 'error');
+    if (!username || !password) return showMsg('loginMsg', 'Fill in all fields', 'error');
 
     try {
       const res = await fetch(`${API}/login`, {
@@ -808,7 +808,7 @@
     const username = document.getElementById('regUser').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPass').value;
-    if (!username || !password) return showMsg('registerMsg', 'Username aur password zaroori hai', 'error');
+    if (!username || !password) return showMsg('registerMsg', 'Username and password are required', 'error');
 
     try {
       const res = await fetch(`${API}/register`, {
@@ -818,7 +818,7 @@
       });
       const data = await res.json();
       if (!res.ok) return showMsg('registerMsg', data.error, 'error');
-      showMsg('registerMsg', '✅ Account ban gaya! Ab login karo.', 'success');
+      showMsg('registerMsg', '✅ Account created! Now log in.', 'success');
       setTimeout(() => switchTab('login'), 1500);
     } catch {
       showMsg('registerMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
@@ -865,7 +865,7 @@
   function renderFiles(files) {
     const grid = document.getElementById('fileGrid');
     if (!files.length) {
-      grid.innerHTML = `<div class="empty-state"><div class="emo">📭</div><p>Koi file nahi — upload karo!</p></div>`;
+      grid.innerHTML = `<div class="empty-state"><div class="emo">📭</div><p>No file selected — please upload a file!</p></div>`;
       return;
     }
     grid.innerHTML = files.map(f => `
@@ -898,7 +898,7 @@
         const res = await fetch(`${API}/upload/${currentUser}`, { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok) toast(data.error, 'error');
-        else toast(`✅ ${file.name} upload ho gaya!`, 'success');
+        else toast(`✅ ${file.name} Upload completed!`, 'success');
       } catch {
         toast(`❌ ${file.name} upload fail`, 'error');
       }
