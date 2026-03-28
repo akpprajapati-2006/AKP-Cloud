@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import os
 import hashlib
@@ -10,6 +10,7 @@ CORS(app)
 
 SUPABASE_URL = "https://mhxvfmpgquozppvnzjgz.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oeHZmbXBncXVvenBwdm56amd6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDQzMDQ2OCwiZXhwIjoyMDkwMDA2NDY4fQ._RWBLNyGJn5D68NoP0_T8xFbYPgfvBBMX0BSvyPZUS0"
+BUCKET = "user-files"
 
 HEADERS = {
     "apikey": SUPABASE_KEY,
@@ -17,9 +18,6 @@ HEADERS = {
     "Content-Type": "application/json",
     "Prefer": "return=representation"
 }
-
-UPLOAD_DIR = "user_storage"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -110,18 +108,27 @@ def upload_file(username):
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
-    user_dir = os.path.join(UPLOAD_DIR, username)
-    os.makedirs(user_dir, exist_ok=True)
-    save_path = os.path.join(user_dir, file.filename)
-    file.save(save_path)
-    size = os.path.getsize(save_path)
+    file_content = file.read()
+    size = len(file_content)
+    storage_path = f"{username}/{file.filename}"
 
+    # Upload to Supabase Storage
+    storage_headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": file.content_type or "application/octet-stream",
+        "x-upsert": "true"
+    }
+    storage_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{storage_path}"
+    req.post(storage_url, headers=storage_headers, data=file_content)
+
+    # Save metadata in files table
     existing = sb_get("files", f"username=eq.{username}&filename=eq.{file.filename}&select=id")
     if isinstance(existing, list) and len(existing) > 0:
         sb_patch("files", f"username=eq.{username}&filename=eq.{file.filename}", {
             "size": size,
             "uploaded_at": datetime.now().isoformat(),
-            "filetype": file.content_type
+            "filetype": file.content_type or "application/octet-stream"
         })
     else:
         sb_post("files", {
@@ -137,37 +144,59 @@ def upload_file(username):
 # ── DOWNLOAD ──────────────────────────────────────────────
 @app.route("/api/download/<username>/<filename>", methods=["GET"])
 def download_file(username, filename):
-    file_path = os.path.join(UPLOAD_DIR, username, filename)
-    if not os.path.exists(file_path):
-        return jsonify({"error": "File not found"}), 404
-    return send_file(file_path, as_attachment=True, download_name=filename)
+    storage_path = f"{username}/{filename}"
+    download_url = f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{storage_path}"
+
+    storage_headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    r = req.get(download_url, headers=storage_headers)
+
+    if r.status_code == 200:
+        from flask import Response
+        return Response(
+            r.content,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Type": r.headers.get("Content-Type", "application/octet-stream")
+            }
+        )
+    return jsonify({"error": "File not found"}), 404
 
 # ── READ ──────────────────────────────────────────────────
 @app.route("/api/read/<username>/<filename>", methods=["GET"])
 def read_file(username, filename):
-    file_path = os.path.join(UPLOAD_DIR, username, filename)
-    if not os.path.exists(file_path):
-        return jsonify({"error": "File not found"}), 404
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        return jsonify({"content": content, "filename": filename})
-    except:
-        return jsonify({"error": "Binary file read nahi ho sakta"}), 400
+    storage_path = f"{username}/{filename}"
+    download_url = f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{storage_path}"
+
+    r = req.get(download_url)
+    if r.status_code == 200:
+        try:
+            content = r.content.decode("utf-8")
+            return jsonify({"content": content, "filename": filename})
+        except:
+            return jsonify({"error": "Binary file read nahi ho sakta"}), 400
+    return jsonify({"error": "File not found"}), 404
 
 # ── WRITE ─────────────────────────────────────────────────
 @app.route("/api/write/<username>/<filename>", methods=["POST"])
 def write_file(username, filename):
     data = request.json
     content = data.get("content", "")
-    user_dir = os.path.join(UPLOAD_DIR, username)
-    os.makedirs(user_dir, exist_ok=True)
-    file_path = os.path.join(user_dir, filename)
+    file_content = content.encode("utf-8")
+    size = len(file_content)
+    storage_path = f"{username}/{filename}"
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(content)
+    storage_headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "text/plain",
+        "x-upsert": "true"
+    }
+    storage_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{storage_path}"
+    req.post(storage_url, headers=storage_headers, data=file_content)
 
-    size = os.path.getsize(file_path)
     existing = sb_get("files", f"username=eq.{username}&filename=eq.{filename}&select=id")
     if isinstance(existing, list) and len(existing) > 0:
         sb_patch("files", f"username=eq.{username}&filename=eq.{filename}", {
@@ -188,9 +217,17 @@ def write_file(username, filename):
 # ── DELETE ────────────────────────────────────────────────
 @app.route("/api/delete/<username>/<filename>", methods=["DELETE"])
 def delete_file(username, filename):
-    file_path = os.path.join(UPLOAD_DIR, username, filename)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    storage_path = f"{username}/{filename}"
+    storage_headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+    req.delete(
+        f"{SUPABASE_URL}/storage/v1/object/{BUCKET}",
+        headers=storage_headers,
+        json={"prefixes": [storage_path]}
+    )
     sb_delete("files", f"username=eq.{username}&filename=eq.{filename}")
     return jsonify({"message": f"{filename} deleted"})
 
@@ -206,5 +243,5 @@ def storage_info(username):
     return jsonify({"used_bytes": total, "file_count": count})
 
 if __name__ == "__main__":
-    print("CloudVault + Supabase running!")
+    print("CloudVault + Supabase Storage running!")
     app.run(debug=True, port=5000)
