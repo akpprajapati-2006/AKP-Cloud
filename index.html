@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AKP CloudVault — Aapka Personal Cloud</title>
-<link rel="icon" href="Screenshot 2026-03-26 225109.png">
+<link rel="icon" href="akp24.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -626,7 +626,7 @@
     <div class="logo-area">
       <div class="logo-icon">☁️</div>
       <h1>CloudVault</h1>
-      <p>Aap ka personal secure cloud storage with AKP</p>
+      <p>Your personal secure cloud storage with AKP</p>
     </div>
 
     <div class="auth-card">
@@ -707,7 +707,7 @@
         <div class="stat-icon purple">✏️</div>
         <div class="stat-info">
           <h3 id="statUser">—</h3>
-          <p>Aap ka Account</p>
+          <p>Your Account</p>
         </div>
       </div>
     </div>
@@ -731,7 +731,7 @@
     </div>
 
     <!-- FILES -->
-    <div class="section-title">MY Files With AKP</div>
+    <div class="section-title">MY Files With AKP-Cloud</div>
     <div class="file-grid" id="fileGrid">
       <div class="empty-state">
         <div class="emo">📭</div>
@@ -756,7 +756,7 @@
       <button class="btn-close-modal" style="margin-left:auto" onclick="closeEditor()">✕ Close</button>
     </div>
     <div class="modal-editor">
-      <textarea id="editorTextarea" placeholder="Yahan likhna shuru karo...&#10;&#10;Python ke saath is file ko read/write kar sakte ho!"></textarea>
+      <textarea id="editorTextarea" placeholder="Start writing here...&#10;&#10;You can read/write this file using Python!"></textarea>
     </div>
     <div class="modal-footer">
       <span id="editorCharCount">0 characters</span>
@@ -768,7 +768,7 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-  <!-- ═══ FOOTER ═══ -->
+<!-- ═══ FOOTER ═══ -->
 <footer style="background:#1a2235;color:#c8d6e5;font-family:'Segoe UI',Arial,sans-serif;margin-top:40px;">
 
   <!-- Top Section - Links -->
@@ -784,7 +784,6 @@
     <div>
       <h4 style="color:#fff;font-size:14px;margin:0 0 14px;font-weight:600;">	
 Connect with Us</h4>
-      <a href="https://www.youtube.com/@akpprajapativlogs" style="color:#c8d6e5;text-decoration:none;font-size:13px;display:block;line-height:2.2;">Youtube </a>
       <a href="https://github.com/akpprajapati-2006" style="color:#c8d6e5;text-decoration:none;font-size:13px;display:block;line-height:2.2;">GitHub</a>
       <a href="https://www.linkedin.com/in/akash-kumar-prajapati-58a76a371?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" style="color:#c8d6e5;text-decoration:none;font-size:13px;display:block;line-height:2.2;">LinkedIn</a>
       <a href="#" style="color:#c8d6e5;text-decoration:none;font-size:13px;display:block;line-height:2.2;">Twitter / X</a>
@@ -848,7 +847,7 @@ Connect with Us</h4>
 </footer>
 
 <script>
-  const API = "https://akp-cloud.onrender.com/api";
+  const API = "http://localhost:5000/api";
   let currentUser = null;
   let allFiles = [];
 
@@ -879,7 +878,7 @@ Connect with Us</h4>
       currentUser = username;
       enterDashboard();
     } catch {
-      showMsg('loginMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
+      showMsg('loginMsg', 'Unable to connect to server! Please start the Python backend.', 'error');
     }
   }
 
@@ -900,7 +899,7 @@ Connect with Us</h4>
       showMsg('registerMsg', '✅ Account created! Now log in.', 'success');
       setTimeout(() => switchTab('login'), 1500);
     } catch {
-      showMsg('registerMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
+      showMsg('registerMsg', 'Unable to connect to server! Please start the Python backend.', 'error');
     }
   }
 
@@ -929,7 +928,7 @@ Connect with Us</h4>
       renderFiles(allFiles);
       document.getElementById('statFiles').textContent = allFiles.length;
     } catch {
-      toast('Files load nahi hui — backend check karo', 'error');
+      toast('Failed to load files — please check backend', 'error');
     }
   }
 
@@ -1000,18 +999,18 @@ Connect with Us</h4>
 
   function downloadFile(filename) {
     window.open(`${API}/download/${currentUser}/${encodeURIComponent(filename)}`);
-    toast(`⬇️ Download shuru: ${filename}`, 'success');
+    toast(`⬇️ Download started: ${filename}`, 'success');
   }
 
   async function deleteFile(filename) {
-    if (!confirm(`"${filename}" delete karna chahte ho?`)) return;
+    if (!confirm(`"${filename}" Do you want to delete?`)) return;
     try {
       await fetch(`${API}/delete/${currentUser}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
-      toast(`🗑️ ${filename} delete ho gaya`, 'success');
+      toast(`🗑️ ${filename} deleted successfully`, 'success');
       loadFiles();
       loadStorageInfo();
     } catch {
-      toast('Delete fail ho gaya', 'error');
+      toast('Delete failed', 'error');
     }
   }
 
@@ -1034,14 +1033,14 @@ Connect with Us</h4>
       updateEditorMeta();
       document.getElementById('editorModal').classList.add('open');
     } catch {
-      toast('File read nahi ho pa rahi', 'error');
+      toast('Unable to read file', 'error');
     }
   }
 
   async function saveFile() {
     const filename = document.getElementById('editorFilename').value.trim();
     const content = document.getElementById('editorTextarea').value;
-    if (!filename) return toast('File ka naam daalo', 'error');
+    if (!filename) return toast('Please enter a file name', 'error');
     try {
       const res = await fetch(`${API}/write/${currentUser}/${encodeURIComponent(filename)}`, {
         method: 'POST',
@@ -1050,11 +1049,11 @@ Connect with Us</h4>
       });
       const data = await res.json();
       document.getElementById('editorStatus').textContent = '✅ Saved ' + new Date().toLocaleTimeString();
-      toast(`💾 ${filename} save ho gaya!`, 'success');
+      toast(`💾 ${filename} saved successfully!`, 'success');
       loadFiles();
       loadStorageInfo();
     } catch {
-      toast('Save fail ho gaya', 'error');
+      toast('Save failed', 'error');
     }
   }
 
@@ -1066,7 +1065,7 @@ Connect with Us</h4>
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click();
-    toast(`⬇️ ${filename} download ho raha hai`, 'success');
+    toast(`⬇️ ${filename} Downloading: `, 'success');
   }
 
   function selectAllText() {
@@ -1074,7 +1073,7 @@ Connect with Us</h4>
   }
 
   function clearEditor() {
-    if (confirm('Editor clear karna chahte ho?')) {
+    if (confirm('Are you sure you want to clear the editor?')) {
       document.getElementById('editorTextarea').value = '';
       updateEditorMeta();
     }
