@@ -626,7 +626,7 @@
     <div class="logo-area">
       <div class="logo-icon">☁️</div>
       <h1>CloudVault</h1>
-      <p>Your personal secure cloud storage with AKP</p>
+      <p>Aap ka personal secure cloud storage with AKP</p>
     </div>
 
     <div class="auth-card">
@@ -707,7 +707,7 @@
         <div class="stat-icon purple">✏️</div>
         <div class="stat-info">
           <h3 id="statUser">—</h3>
-          <p>Your Account</p>
+          <p>Aap ka Account</p>
         </div>
       </div>
     </div>
@@ -731,7 +731,7 @@
     </div>
 
     <!-- FILES -->
-    <div class="section-title">MY Files With AKP-Cloud</div>
+    <div class="section-title">MY Files With AKP</div>
     <div class="file-grid" id="fileGrid">
       <div class="empty-state">
         <div class="emo">📭</div>
@@ -756,7 +756,7 @@
       <button class="btn-close-modal" style="margin-left:auto" onclick="closeEditor()">✕ Close</button>
     </div>
     <div class="modal-editor">
-      <textarea id="editorTextarea" placeholder="Start writing here...&#10;&#10;You can read/write this file using Python!"></textarea>
+      <textarea id="editorTextarea" placeholder="Yahan likhna shuru karo...&#10;&#10;Python ke saath is file ko read/write kar sakte ho!"></textarea>
     </div>
     <div class="modal-footer">
       <span id="editorCharCount">0 characters</span>
@@ -878,7 +878,7 @@ Connect with Us</h4>
       currentUser = username;
       enterDashboard();
     } catch {
-      showMsg('loginMsg', 'Unable to connect to server! Please start the Python backend.', 'error');
+      showMsg('loginMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
     }
   }
 
@@ -899,7 +899,7 @@ Connect with Us</h4>
       showMsg('registerMsg', '✅ Account created! Now log in.', 'success');
       setTimeout(() => switchTab('login'), 1500);
     } catch {
-      showMsg('registerMsg', 'Unable to connect to server! Please start the Python backend.', 'error');
+      showMsg('registerMsg', 'Server se connect nahi ho pa raha! Python backend chalao.', 'error');
     }
   }
 
@@ -928,7 +928,7 @@ Connect with Us</h4>
       renderFiles(allFiles);
       document.getElementById('statFiles').textContent = allFiles.length;
     } catch {
-      toast('Failed to load files — please check backend', 'error');
+      toast('Files load nahi hui — backend check karo', 'error');
     }
   }
 
@@ -999,18 +999,18 @@ Connect with Us</h4>
 
   function downloadFile(filename) {
     window.open(`${API}/download/${currentUser}/${encodeURIComponent(filename)}`);
-    toast(`⬇️ Download started: ${filename}`, 'success');
+    toast(`⬇️ Download shuru: ${filename}`, 'success');
   }
 
   async function deleteFile(filename) {
-    if (!confirm(`"${filename}" Do you want to delete?`)) return;
+    if (!confirm(`"${filename}" delete karna chahte ho?`)) return;
     try {
       await fetch(`${API}/delete/${currentUser}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
-      toast(`🗑️ ${filename} deleted successfully`, 'success');
+      toast(`🗑️ ${filename} delete ho gaya`, 'success');
       loadFiles();
       loadStorageInfo();
     } catch {
-      toast('Delete failed', 'error');
+      toast('Delete fail ho gaya', 'error');
     }
   }
 
@@ -1033,14 +1033,14 @@ Connect with Us</h4>
       updateEditorMeta();
       document.getElementById('editorModal').classList.add('open');
     } catch {
-      toast('Unable to read file', 'error');
+      toast('File read nahi ho pa rahi', 'error');
     }
   }
 
   async function saveFile() {
     const filename = document.getElementById('editorFilename').value.trim();
     const content = document.getElementById('editorTextarea').value;
-    if (!filename) return toast('Please enter a file name', 'error');
+    if (!filename) return toast('File ka naam daalo', 'error');
     try {
       const res = await fetch(`${API}/write/${currentUser}/${encodeURIComponent(filename)}`, {
         method: 'POST',
@@ -1049,11 +1049,11 @@ Connect with Us</h4>
       });
       const data = await res.json();
       document.getElementById('editorStatus').textContent = '✅ Saved ' + new Date().toLocaleTimeString();
-      toast(`💾 ${filename} saved successfully!`, 'success');
+      toast(`💾 ${filename} save ho gaya!`, 'success');
       loadFiles();
       loadStorageInfo();
     } catch {
-      toast('Save failed', 'error');
+      toast('Save fail ho gaya', 'error');
     }
   }
 
@@ -1065,7 +1065,7 @@ Connect with Us</h4>
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click();
-    toast(`⬇️ ${filename} Downloading: `, 'success');
+    toast(`⬇️ ${filename} download ho raha hai`, 'success');
   }
 
   function selectAllText() {
@@ -1073,7 +1073,7 @@ Connect with Us</h4>
   }
 
   function clearEditor() {
-    if (confirm('Are you sure you want to clear the editor?')) {
+    if (confirm('Editor clear karna chahte ho?')) {
       document.getElementById('editorTextarea').value = '';
       updateEditorMeta();
     }
