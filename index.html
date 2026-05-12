@@ -210,22 +210,32 @@
   .msg.error { background: rgba(239,68,68,0.12); border: 1px solid var(--danger); color: var(--danger); display: block; }
 
   /* ── DASHBOARD ── */
-  #dashPage { min-height: 100vh; }
+  #dashPage {
+  min-height: 100vh;
+  overflow: visible;
+}
 
-  .topbar {
-    background: rgba(17,24,39,0.85);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+   .topbar {
+  background: rgba(17,24,39,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
 
+  padding: 0 2rem;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  z-index: 9999;
+
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
   .topbar-logo {
     font-family: 'Syne', sans-serif;
     font-weight: 800;
@@ -290,7 +300,15 @@
 
   .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
-  .dash-body { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
+  .dash-body {
+  max-width: 1100px;
+  margin: 0 auto;
+
+  padding-top: 90px;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 2.5rem;
+}
 
   /* STATS */
   .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
