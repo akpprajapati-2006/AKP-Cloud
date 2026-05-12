@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AKP CloudVault — Aapka Personal Cloud</title>
-<link rel="icon" href="Screenshot 2026-03-26 225109.png">
+<link rel="icon" href="akp24.png">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -46,9 +46,25 @@
   }
 
   /* ── PAGES ── */
-  .page { display: none; position: relative; z-index: 1; }
-  .page.active { display: block; }
+ .page {
+  display: none;
+  position: relative;
+  z-index: 1;
+}
 
+.page.active {
+  display: block;
+}
+
+/* AUTH PAGE ACTIVE */
+#authPage.active {
+  display: flex;
+}
+
+/* DASHBOARD ACTIVE */
+#dashPage.active {
+  display: block;
+}
   /* ── AUTH PAGE ── */
   #authPage {
     min-height: 100vh;
@@ -847,7 +863,7 @@ Connect with Us</h4>
 </footer>
 
 <script>
- const API = "https://akp-cloud.onrender.com/api";
+  const API = "http://localhost:5000/api";
   let currentUser = null;
   let allFiles = [];
 
@@ -1092,10 +1108,22 @@ Connect with Us</h4>
 
   // ─── HELPERS ──────────────────────────────────────────────────────────────
 
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+    page.style.display = 'none';
+  });
+
+  const activePage = document.getElementById(id);
+
+  if (id === 'authPage') {
+    activePage.style.display = 'flex';
+  } else {
+    activePage.style.display = 'block';
   }
+
+  activePage.classList.add('active');
+}
 
   function showMsg(id, text, type) {
     const el = document.getElementById(id);
